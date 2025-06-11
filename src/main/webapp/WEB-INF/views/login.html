@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center font-sans">
+
+<div class="flex flex-col md:flex-row items-center gap-10 max-w-6xl w-full px-4">
+
+    <!-- Left image block -->
+    <div class="w-full md:w-1/2">
+        <img
+                src="https://png.pngtree.com/png-clipart/20210316/ourlarge/pngtree-online-education-student-learning-png-image_3081334.jpg"
+                alt="Join"
+                class="rounded-xl w-full h-auto object-cover"
+        />
+    </div>
+
+    <!-- Right content block -->
+    <div class="w-full md:w-1/2 flex flex-col items-center text-white text-center">
+
+        <!-- Title + description -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold mb-2">Join us today <span>👋</span></h2>
+            <p class="text-gray-400 max-w-md mx-auto">
+                Clarity gives you the blocks and components you need to create a truly professional website.
+            </p>
+        </div>
+
+        <!-- Login form -->
+        <form action="login-user" th:object="${loginDTO}" method="post" class="bg-white text-black rounded-xl shadow-md w-full max-w-sm p-8 space-y-4">
+            <h3 class="text-2xl font-bold text-center">Đăng nhập</h3>
+
+            <div class="text-left">
+                <label for="email" class="block text-sm font-medium mb-1">Email</label>
+                <input
+                        id="email"
+                        th:field="*{email}"
+                        type="text"
+                        placeholder="Nhập email"
+                        class="w-full px-4 py-2 bg-gray-200 rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <p class="mt-1 text-sm text-red-500" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+            </div>
+
+            <!-- Password -->
+            <div class="text-left">
+                <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                <input
+                        id="password"
+                        th:field="*{password}"
+                        type="password"
+                        placeholder="Nhập password"
+                        class="w-full px-4 py-2 bg-gray-200 rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <p class="mt-1 text-sm text-red-500" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+            </div>
+
+            <p class="text-center text-sm text-gray-700">
+                Bạn chưa có tài khoản?
+                <a href="register" class="text-red-600 font-medium cursor-pointer">, Đăng ký</a>
+            </p>
+
+            <button class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition">
+                Đăng nhập
+            </button>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

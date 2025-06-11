@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="max-w-8xl mx-auto bg-white p-6 rounded shadow" >
+            <h1 class="text-2xl font-bold mb-6">Quản lí khóa học</h1>
+
+            <!-- Top controls -->
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                <div class="flex gap-4 items-center">
+                    <select class="border rounded px-3 py-2 text-sm">
+                        <option>Sort By ID</option>
+                        <option>Sort By Name</option>
+                    </select>
+
+                    <div class="relative">
+                        <input
+                                type="text"
+                                placeholder="Nhập khóa học cần tìm"
+                                class="border rounded px-3 py-2 text-sm w-64"
+                        />
+                        <button class="absolute right-0 top-0 h-full px-4 bg-blue-500 text-white rounded-r text-sm">
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+
+                <a href="add-course" class="bg-blue-500 text-white px-4 py-2 rounded text-sm">
+                    Thêm khóa học
+                </a>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left border border-gray-200">
+                    <thead class="bg-gray-100 text-gray-600 uppercase">
+                        <tr>
+                            <th class="p-3 text-center">Mã khóa học</th>
+                            <th class="p-3 text-center">Tên khóa học</th>
+                            <th class="p-3 text-center">Thời lượng (Hour)</th>
+                            <th class="p-3 text-center">Giảng viên</th>
+                            <th class="p-3 text-center">Hình ảnh</th>
+                            <th class="p-3 text-center">Ngày tạo</th>
+                            <th class="p-3 text-center">Chức năng</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        <tr class="border-t hover:bg-gray-50" th:if="${#lists.isEmpty(courses)}">
+                            <td class="text-center p-3" colspan="7" th:text="${message}"></td>
+                        </tr>
+                        <!-- Example Row -->
+                        <tr class="border-t hover:bg-gray-50 text-center" th:each="course, loop : ${courses}">
+                            <td class="p-3" th:text="${course.courseId}"></td>
+                            <td class="p-3" th:text="${course.courseName}"></td>
+                            <td class="p-3" th:text="${course.duration}"></td>
+                            <td class="p-3" th:text="${course.instructor}"></td>
+                            <td class="p-3 flex justify-center items-center">
+                                <img th:src="${course.image}" class="h-10 w-10 object-cover rounded mx-auto" alt="Instructor">
+                            </td>
+                            <td class="p-3" th:text="${#temporals.format(course.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                            <td class="p-3 space-x-2">
+                                <button class="text-red-500 hover:text-red-700">🗑</button>
+                                <form th:action="@{'edit-course/' + ${course.courseId}}" method="get">
+                                    <button class="text-yellow-500 hover:text-yellow-600">✏️</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center items-center gap-2 mt-6">
+                <a th:if="${currentPage > 1}"
+                   th:href="@{/courses(page=${currentPage - 1})}"
+                   class="border px-3 py-1 rounded">&lt;
+                </a>
+                <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+                   th:href="@{/courses(page=${i})}"
+                   th:text="${i}"
+                   th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                   class="border px-3 py-1 rounded">1
+                </a>
+                <a th:if="${currentPage < totalPages}"
+                   th:href="@{/courses(page=${currentPage + 1})}"
+                   class="border px-3 py-1 rounded">&gt;
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
