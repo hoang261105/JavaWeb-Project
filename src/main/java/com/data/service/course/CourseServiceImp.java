@@ -46,4 +46,39 @@ public class CourseServiceImp implements CourseService {
     public void delete(String courseId) {
         courseRepository.delete(courseId);
     }
+
+    @Override
+    public List<Course> findCourseByName(String courseName, int page, int size) {
+        return courseRepository.findCourseByName(courseName, page, size);
+    }
+
+    @Override
+    public long countCourseByName(String courseName) {
+        return courseRepository.countCourseByName(courseName);
+    }
+
+    @Override
+    public List<Course> sortCourseById(String sortType, int page, int size) {
+        return courseRepository.sortCourseById(sortType, page, size);
+    }
+
+    @Override
+    public List<Course> sortCourseByName(String sortType, int page, int size) {
+        return courseRepository.sortCourseByName(sortType, page, size);
+    }
+
+    @Override
+    public void updateStatus(String courseId) {
+        courseRepository.updateStatus(courseId);
+    }
+
+    @Override
+    public List<Course> getEnrolledCoursesByStudent(int studentId, int page, int size) {
+        return courseRepository.getEnrolledCoursesByStudent(studentId, page, size);
+    }
+
+    @Override
+    public long countEnrolledCoursesByStudent(int studentId) {
+        return courseRepository.countEnrolledCoursesByStudent(studentId);
+    }
 }

@@ -1,10 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Trang chủ</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-    <h2>Đây là trang home. Xin chào <span th:text="${student.name}"></span></h2>
+    <div th:fragment="content">
+        <!-- Title -->
+        <h1 class="text-center text-4xl font-bold text-yellow-500 mb-10">Danh sách khóa học</h1>
+
+        <!-- Search bar -->
+        <div class="flex justify-end mb-8">
+            <form th:action="@{/home}" class="flex items-center space-x-2" method="get">
+                <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Tìm kiêm khóa học theo tên"
+                        th:value="${keyword}"
+                        class="border border-gray-300 rounded px-4 py-2 w-64"
+                />
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Tìm kiếm</button>
+            </form>
+        </div>
+
+        <!-- Course Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div
+                    class="flex items-center justify-center h-64"
+                    th:if="${#lists.isEmpty(courses)}"
+            >
+                <div class="border rounded-lg shadow p-4 text-center">
+                    <p class="text-sm text-gray-600" th:text="${message}"></p>
+                </div>
+            </div>
+
+            <!-- Single Course Card -->
+            <div class="border rounded-lg shadow p-4" th:each="course : ${courses}">
+                <img th:src="${course.image}" alt="course image" class="w-full h-48 object-cover rounded mb-4">
+                <h2 class="text-red-600 font-semibold" th:text="${course.courseName}"></h2>
+                <p class="text-green-600 text-sm">Let's explore</p>
+                <p class="mt-2 text-sm">Thời lượng: <span th:text="${course.duration}"></span> giờ</p>
+                <p class="text-sm">Giảng viên: <span th:text="${course.instructor}"></span></p>
+                <div>
+                    <!-- Kiểm tra nếu sinh viên đã đăng ký khóa học này -->
+                    <th:block th:if="${#lists.contains(enrolledCourseIds, course.courseId)}">
+                        <button class="w-full mt-4 bg-green-500 text-white py-2 rounded" disabled>Đã đăng ký</button>
+                    </th:block>
+
+                    <!-- Nếu chưa đăng ký thì hiển thị nút đăng ký -->
+                    <th:block th:unless="${#lists.contains(enrolledCourseIds, course.courseId)}">
+                        <a th:href="@{home(page=${currentPage}, isShowModal=true, id=${course.courseId})}">
+                            <button class="w-full mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700">Đăng ký</button>
+                        </a>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center gap-2 mt-6" th:if="${!#lists.isEmpty(courses)}">
+            <a th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+               th:href="@{${baseURL}(page=${currentPage - 1})}"
+               class="border px-3 py-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:href="@{${baseURL}(page=${i})}"
+               th:text="${i}"
+               th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+               class="border px-3 py-1 rounded">
+            </a>
+
+            <a th:href="@{${baseURL}(page=${currentPage + 1})}"
+               th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+               class="border px-3 py-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+            </a>
+        </div>
+
+        <!-- Modal overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" th:if="${isShowModal}">
+            <!-- Modal box -->
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+                <!-- Icon + Title -->
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-semibold">Xác nhận</h2>
+                </div>
+
+                <!-- Message -->
+                <p class="text-sm text-gray-700">
+                    Bạn có chắc chắn muốn đăng ký khóa học
+                    <span class="text-yellow-500 font-medium" th:text="${course.courseName}"></span>
+                    không?
+                </p>
+
+                <div class="border-t border-gray-200 my-4"></div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-2 mt-6">
+                    <a th:href="@{home(page=${currentPage}, isShowModal=false)}" class="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100">Hủy</a>
+                    <form th:action="@{enrollment(page=${currentPage}, courseId=${id})}" method="post">
+                        <button class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Ok</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="min-h-screen bg-gray-50 p-10">
+            <h1 class="text-2xl font-semibold mb-6">Quản lí đăng ký khóa học</h1>
+
+            <!-- Filter Row -->
+            <div class="flex flex-wrap justify-end items-center gap-4 mb-6">
+                <form action="adminEnrollment" method="get">
+                    <select class="border border-gray-300 rounded px-4 py-2 w-48" name="status" onchange="this.form.submit()">
+                        <option value="all" th:selected="${status == 'all'}">Lọc theo trạng thái</option>
+                        <option value="WAITING" th:selected="${status == 'WAITING'}">Đang chờ duyệt</option>
+                        <option value="CONFIRMED" th:selected="${status == 'CONFIRMED'}">Đã duyệt</option>
+                        <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Đã hủy</option>
+                        <option value="DENIED" th:selected="${status == 'DENIED'}">Từ chối</option>
+                    </select>
+                </form>
+
+                <form action="adminEnrollment" class="relative flex-1 max-w-sm flex items-center gap-2" method="get">
+                    <div class="relative w-full">
+                        <input
+                                type="text"
+                                name="courseName"
+                                th:value="${courseName}"
+                                placeholder="Tìm kiếm khóa học theo tên"
+                                class="border border-gray-300 rounded pl-4 pr-10 py-2 w-full"
+                        />
+                        <svg class="w-5 h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0Z"/>
+                        </svg>
+                    </div>
+
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-sm" type="submit">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto bg-white rounded shadow">
+                <table class="min-w-full text-sm text-left">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-center">
+                            <th class="py-3 px-4">STT</th>
+                            <th class="py-3 px-4">Tên học viên</th>
+                            <th class="py-3 px-4">Tên khóa học</th>
+                            <th class="py-3 px-4">Thời gian đăng ký</th>
+                            <th class="py-3 px-4">Trạng thái</th>
+                            <th class="py-3 px-4">Chức năng</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        <tr class="border-t" th:if="${#lists.isEmpty(enrollments)}">
+                            <td class="py-2 px-4" colspan="6" th:text="${message}"></td>
+                        </tr>
+
+                        <!-- Example Row -->
+                        <tr class="border-t" th:each="enrollment, loop : ${enrollments}">
+                            <td class="py-2 px-4" th:text="${(currentPage - 1) * pageSize + loop.index + 1}"></td>
+                            <td class="py-2 px-4" th:text="${enrollment.student.name}"></td>
+                            <td class="py-2 px-4" th:text="${enrollment.course.courseName}"></td>
+                            <td class="py-2 px-4" th:text="${#temporals.format(enrollment.registeredAt, 'dd-MM-yyyy HH:mm:ss')}">05/05/2025</td>
+                            <td class="p-4 font-semibold"
+                                th:classappend="${enrollment.status.name() == 'WAITING'} ? 'text-yellow-600' :
+                                           (${enrollment.status.name() == 'CONFIRMED'} ? 'text-green-600' : 'text-red-600')"
+                                th:text="${enrollment.status.name() == 'WAITING'} ? 'Đang chờ duyệt' :
+                                     (${enrollment.status.name() == 'CONFIRMED'} ? 'Đã duyệt' :
+                                     (${enrollment.status.name() == 'CANCELLED'} ? 'Đã hủy' : 'Từ chối'))">
+                            </td>
+                            <td class="py-2 px-4 flex justify-center gap-2" th:if="${enrollment.status.name() == 'WAITING' and enrollment.course.status == true}">
+                                <a th:href="@{adminEnrollment(isShowModalConfirm=true, id=${enrollment.id}, status=${status})}">
+                                    <button class="px-6 py-2 rounded border-2 border-green-500 text-green-500 bg-green-100 font-semibold hover:bg-green-200 transition">Duyệt</button>
+                                </a>
+                                <a th:href="@{adminEnrollment(isShowModalDeny=true, id=${enrollment.id}, status=${status})}">
+                                    <button class="px-6 py-2 rounded border-2 border-red-400 text-red-400 bg-red-100 font-semibold hover:bg-red-200 transition">Từ chối</button>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-center items-center gap-2 mt-6" th:if="${!#lists.isEmpty(enrollments)}">
+
+                <!-- Previous -->
+                <a th:if="${status != null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1}, status=${status})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <a th:if="${status == null and courseName != null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1}, courseName=${courseName})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <a th:if="${status == null and courseName == null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <!-- Page Numbers -->
+                <th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:if="${status != null}"
+                       th:href="@{${baseURL}(page=${i}, status=${status})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+
+                    <a th:if="${status == null and courseName != null}"
+                       th:href="@{${baseURL}(page=${i}, courseName=${courseName})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+
+                    <a th:if="${status == null and courseName == null}"
+                       th:href="@{${baseURL}(page=${i})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+                </th:block>
+
+                <!-- Next -->
+                <a th:if="${status != null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1}, status=${status})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+
+                <a th:if="${status == null and courseName != null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1}, courseName=${courseName})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+
+                <a th:if="${status == null and courseName == null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+            </div>
+
+            <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" th:if="${isShowModalConfirm}">
+                <!-- Modal box -->
+                <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+                    <!-- Icon + Title -->
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-semibold">Xác nhận</h2>
+                    </div>
+
+                    <!-- Message -->
+                    <p class="text-sm text-gray-700">
+                        Bạn có chắc chắn muốn duyệt đăng ký khóa học này không?
+                    </p>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end space-x-2 mt-6">
+                        <a th:href="@{adminEnrollment(isShowModalConfirm=false, status=${status})}" class="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100">Hủy</a>
+                        <form th:action="@{approval(page=${currentPage}, id=${id})}" method="post">
+                            <button class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Ok</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" th:if="${isShowModalDeny}">
+                <!-- Modal box -->
+                <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+                    <!-- Icon + Title -->
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-semibold">Xác nhận</h2>
+                    </div>
+
+                    <!-- Message -->
+                    <p class="text-sm text-gray-700">
+                        Bạn có chắc chắn muốn từ chối bản đăng ký khóa học này không?
+                    </p>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end space-x-2 mt-6">
+                        <a th:href="@{adminEnrollment(isShowModalDeny=false, status=${status})}" class="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100">Hủy</a>
+                        <form th:action="@{deny(page=${currentPage}, id=${id})}" method="post">
+                            <button class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Ok</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -41,6 +41,7 @@ public class Student {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(nullable = false)
     private boolean role = false;
+
+    private boolean status = true;
 }

@@ -39,6 +39,8 @@ dependencies {
     implementation 'org.springframework:spring-web:5.3.32'
     implementation 'org.springframework:spring-webmvc:5.3.32'
 
+    implementation "org.modelmapper:modelmapper:2.4.2"
+
     implementation 'commons-fileupload:commons-fileupload:1.5'
 
     implementation 'com.cloudinary:cloudinary-http44:1.36.0'

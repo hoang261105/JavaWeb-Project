@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="bg-gray-50 p-10 text-sm font-sans">
+            <h1 class="text-2xl font-semibold mb-6">Quản lí học viên</h1>
+
+            <!-- Filter + Search -->
+            <div class="flex items-center justify-end mb-4 gap-4">
+                <form action="adminStudent" method="get">
+                    <select class="border px-4 py-2 rounded text-sm" name="sortType" onchange="this.form.submit()">
+                        <option value="id asc" th:selected="${sortType == 'id asc'}">Sắp xếp theo id tăng dần</option>
+                        <option value="id desc" th:selected="${sortType == 'id desc'}">Sắp xếp theo id giảm dần</option>
+                        <option value="name asc" th:selected="${sortType == 'name asc'}">Sắp xếp theo tên tăng dần</option>
+                        <option value="name desc" th:selected="${sortType == 'name desc'}">Sắp xếp theo tên giảm dần</option>
+                    </select>
+                </form>
+                <form class="flex gap-2 items-center" action="adminStudent" method="get">
+                    <div class="relative w-64">
+                        <input
+                                type="text"
+                                name="keyword"
+                                th:value="${keyword}"
+                                placeholder="Tìm kiếm tại đây"
+                                class="border px-4 py-2 rounded w-full pr-10"
+                        />
+                        <svg
+                                class="w-5 h-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                        >
+                            <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0Z"
+                            />
+                        </svg>
+                    </div>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto bg-white shadow rounded">
+                <table class="min-w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-center text-gray-600">
+                            <th class="px-4 py-3">Mã sinh viên</th>
+                            <th class="px-4 py-3">Tên học viên</th>
+                            <th class="px-4 py-3">Email</th>
+                            <th class="px-4 py-3">Giới tính</th>
+                            <th class="px-4 py-3">Số điện thoại</th>
+                            <th class="px-4 py-3">Trạng thái</th>
+                            <th class="px-4 py-3">Chức năng</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                    <tr class="border-b text-center" th:if="${#lists.isEmpty(students)}">
+                        <td colspan="7" th:text="${message}">Danh sách trống!</td>
+                    </tr>
+                    <tr class="border-b text-center" th:each="student : ${students}">
+                        <td class="px-4 py-3" th:text="${student.studentId}"></td>
+                        <td class="px-4 py-3" th:text="${student.name}"></td>
+                        <td class="px-4 py-3" th:text="${student.email}"></td>
+                        <td class="px-4 py-3" th:text="${student.sex} ? 'Nam' : 'Nữ'"></td>
+                        <td class="px-4 py-3" th:text="${student.phone}"></td>
+                        <td class="px-4 py-3 font-semibold"
+                            th:text="${student.status} ? 'Hoạt động' : 'Không hoạt động'"
+                            th:classappend="${student.status} ? 'text-green-600' : 'text-red-600'">
+                        </td>
+                        <td class="px-4 py-3">
+                            <form th:action="@{'update-status/' + ${student.studentId}}" method="post" onsubmit="return false;">
+                                <button class="px-3 py-1 rounded"
+                                        type="submit"
+                                        th:text="${student.status} ? 'Khóa' : 'Mở khóa'"
+                                        th:classappend="${student.status} ? 'bg-red-200 text-red-600' : 'bg-green-200 text-green-600'"
+                                        th:attr="data-id=${student.studentId}, data-status=${student.status}, onclick='handleToggle(event, this)'">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center items-center gap-2 mt-6" th:if="${!#lists.isEmpty(students)}">
+
+                <!-- Previous -->
+                <a th:if="${sortType != null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1}, sortType=${sortType})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <a th:if="${sortType == null and keyword != null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1}, keyword=${keyword})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <a th:if="${sortType == null and keyword == null}"
+                   th:href="@{${baseURL}(page=${currentPage - 1})}"
+                   th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&lt;</a>
+
+                <!-- Page Numbers -->
+                <th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:if="${sortType != null}"
+                       th:href="@{${baseURL}(page=${i}, sortType=${sortType})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+
+                    <a th:if="${sortType == null and keyword != null}"
+                       th:href="@{${baseURL}(page=${i}, keyword=${keyword})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+
+                    <a th:if="${sortType == null and keyword == null}"
+                       th:href="@{${baseURL}(page=${i})}"
+                       th:text="${i}"
+                       th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : ''"
+                       class="border px-3 py-1 rounded">1</a>
+                </th:block>
+
+                <!-- Next -->
+                <a th:if="${sortType != null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1}, sortType=${sortType})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+
+                <a th:if="${sortType == null and keyword != null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1}, keyword=${keyword})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+
+                <a th:if="${sortType == null and keyword == null}"
+                   th:href="@{${baseURL}(page=${currentPage + 1})}"
+                   th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+                   class="border px-3 py-1 rounded">&gt;</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:fragment="script">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:inline="javascript">
+            function handleToggle(event, button) {
+                event.preventDefault(); // Ngăn form submit ngay lập tức
+
+                const id = button.dataset.id;
+                const status = button.dataset.status === "true";
+                const form = button.closest("form");
+
+                const title = status ? "Bạn có muốn khóa tài khoản này không?" : "Bạn có muốn mở khóa tài khoản này không?";
+                const confirmText = "Có";
+                const denyText = "Không";
+                const successMessage = status ? "Đã khóa!" : "Đã mở khóa!";
+
+                Swal.fire({
+                    title: title,
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    confirmButtonText: confirmText,
+                    denyButtonText: denyText
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire(successMessage, "", "success").then(() => {
+                            form.submit(); // Chỉ submit khi xác nhận
+                        });
+                    }
+                });
+            }
+        </script>
+    </div>
+</body>
+</html>

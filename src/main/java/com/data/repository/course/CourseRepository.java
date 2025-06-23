@@ -19,4 +19,18 @@ public interface CourseRepository {
     Course findById(String courseId);
 
     void delete(String courseId);
+
+    List<Course> findCourseByName(String courseName, int page, int size);
+
+    long countCourseByName(String courseName);
+
+    List<Course> sortCourseById(String sortType, int page, int size);
+
+    List<Course> sortCourseByName(String sortType, int page, int size);
+
+    void updateStatus(String courseId);
+
+    List<Course> getEnrolledCoursesByStudent(int studentId, int page, int size);
+
+    long countEnrolledCoursesByStudent(int studentId);
 }

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-white overflow-hidden">
+
+<!-- Header -->
+<header class="h-16 bg-white shadow fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6">
+    <!-- Logo -->
+    <div class="flex items-center space-x-2">
+        <img class="h-10 object-contain"
+             src="https://res.cloudinary.com/dtc7mun2h/image/upload/v1749638562/819bc04f5546ebd7a87a7a8ebe401a97208935eb_qevutm.png"
+             alt="Logo">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex space-x-8" id="navbar">
+        <a href="/home" data-link class="nav-link">Danh sách khóa học</a>
+        <a th:href="@{'/history-enrollment/' + ${student != null ? student.studentId : 0}}" data-link class="nav-link">Khóa học đã đăng ký</a>
+        <a href="/profile" data-link class="nav-link">Hồ sơ</a>
+    </nav>
+
+    <!-- Icons & User -->
+    <div class="flex items-center space-x-6">
+        <button class="relative">
+            <span class="material-icons text-purple-700">mail</span>
+            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">1</span>
+        </button>
+        <button>
+            <span class="material-icons">notifications</span>
+        </button>
+        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" class="w-8 h-8 rounded-full" />
+        <a th:href="@{/home(isShowModalLogout=true)}">
+            <button class="flex items-center space-x-1 text-gray-600 hover:text-red-600">
+                <span class="material-icons text-sm">logout</span>
+                <span>Đăng xuất</span>
+            </button>
+        </a>
+    </div>
+</header>
+
+<div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" th:if="${isShowModalLogout}">
+    <!-- Modal box -->
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+        <!-- Icon + Title -->
+        <div class="flex items-center space-x-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-semibold">Xác nhận</h2>
+        </div>
+
+        <!-- Message -->
+        <p class="text-sm text-gray-700">
+            Bạn có chắc chắn muốn đăng xuất không?
+        </p>
+
+        <div class="border-t border-gray-200 my-4"></div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-2 mt-6">
+            <a th:href="@{home(isShowModalLogout=false)}" class="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100">Hủy</a>
+            <form action="logout" method="get">
+                <button class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Ok</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main content scrollable -->
+<main class="mt-12 h-[calc(100vh-4rem)] overflow-y-auto p-10">
+    <div th:insert="~{${viewName} :: ${fragmentName}}"></div>
+</main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const navLinks = document.querySelectorAll('#navbar .nav-link');
+        const currentPath = window.location.pathname;
+
+        // Tách phần chính của path, chỉ lấy 2 segment đầu tiên (vd: /history-enrollment/2 → /history-enrollment)
+        const basePath = '/' + currentPath.split('/')[1];
+
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            const hrefBase = '/' + href.split('/')[1]; // base of href
+
+            if (basePath === hrefBase) {
+                link.classList.add('text-blue-600', 'font-bold', 'border-b-2', 'border-blue-600');
+                link.classList.remove('text-gray-800');
+            } else {
+                link.classList.remove('text-blue-600', 'font-bold', 'border-b-2', 'border-blue-600');
+                link.classList.add('text-gray-800', 'hover:text-blue-600');
+            }
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:inline="javascript" th:if="${success != null}">
+    Swal.fire({
+        title: "Thành công!",
+        text: [[${success}]],
+        icon: "success",
+        confirmButtonText: "OK"
+    });
+</script>
+</body>
+</html>
